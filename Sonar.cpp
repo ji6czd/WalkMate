@@ -1,10 +1,16 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
+#include <wiringPi.h>
 #include <time.h>
+#include <unistd.h>
+
+#define TRIG 24
+#define ECHO 23
 
 const double SoundVelocity=0.017;
 const unsigned int MaxEchoTime=25000;
+
 class Sonar {
 public:
 	Sonar();
@@ -18,7 +24,9 @@ private:
 
 Sonar::Sonar()
 {
-	uSec=25000;
+	if (wiringPiSetupGpio()) return;
+	pinMode(TRIG, OUTPUT);
+	pinMode(ECHO, INPUT);
 	return;
 }
 
@@ -29,9 +37,23 @@ Sonar::~Sonar()
 
 bool Sonar::Ping()
 {
-	// Initial Sensor;
 	// Ping!
+	digitalWrite(TRIG, HIGH);
+	usleep(10);
+	digitalWrite(TRIG, LOW);
 	// Wait pong...
+	while (digitalRead(ECHO) == LOW) {
+		;
+	}
+	// Pong!
+	timespec starttime, endtime;
+	clock_gettime(CLOCK_MONOTONIC, &starttime);
+	while (digitalRead(ECHO) == HIGH) {
+		;
+	}
+	clock_gettime(CLOCK_MONOTONIC, &endtime);
+	uSec = (endtime.tv_sec - starttime.tv_sec)*1000000;
+	uSec += endtime.tv_nsec/1000 - starttime.tv_nsec/1000;
 	if (uSec < MaxEchoTime) {
 		double RealDistance = uSec * SoundVelocity;
 		int rInt = RealDistance; // 整数部だけ
@@ -53,6 +75,9 @@ using std::endl;
 int main()
 {
 	Sonar s;
-	cout << s.getDistance() << endl;
+	while(1) {
+		cout << "\nS: " << s.getDistance() << std::flush;
+		usleep(500000);
+	}
 	return 0;
 }
