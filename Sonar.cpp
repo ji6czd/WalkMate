@@ -2,14 +2,16 @@
 #include <cstdlib>
 #include <string>
 #include <wiringPi.h>
+#include <softTone.h>
 #include <time.h>
 #include <unistd.h>
 
 #define TRIG 24
 #define ECHO 23
+#define BZ 13
 
 const double SoundVelocity=0.017;
-const unsigned int MaxEchoTime=25000;
+const unsigned int MaxEchoTime=50000;
 
 class Sonar {
 public:
@@ -25,6 +27,7 @@ private:
 Sonar::Sonar()
 {
 	if (wiringPiSetupGpio()) return;
+	softToneCreate(BZ);
 	pinMode(TRIG, OUTPUT);
 	pinMode(ECHO, INPUT);
 	return;
@@ -38,20 +41,26 @@ Sonar::~Sonar()
 bool Sonar::Ping()
 {
 	// Ping!
+	timespec pintime, starttime, endtime, inittime;
+	clock_gettime(CLOCK_MONOTONIC, &pintime);
 	digitalWrite(TRIG, HIGH);
 	usleep(10);
 	digitalWrite(TRIG, LOW);
 	// Wait pong...
+	clock_gettime(CLOCK_MONOTONIC, &inittime);
 	while (digitalRead(ECHO) == LOW) {
 		;
 	}
 	// Pong!
-	timespec starttime, endtime;
 	clock_gettime(CLOCK_MONOTONIC, &starttime);
 	while (digitalRead(ECHO) == HIGH) {
 		;
 	}
 	clock_gettime(CLOCK_MONOTONIC, &endtime);
+	//std::cout << "I: " << pintime.tv_nsec << std::endl;
+	//std::cout << "I: " << inittime.tv_nsec << std::endl;
+	//std::cout << "S: " << starttime.tv_nsec << std::endl;
+	//std::cout << "E: " << endtime.tv_nsec << std::endl;
 	uSec = (endtime.tv_sec - starttime.tv_sec)*1000000;
 	uSec += endtime.tv_nsec/1000 - starttime.tv_nsec/1000;
 	if (uSec < MaxEchoTime) {
@@ -75,9 +84,35 @@ using std::endl;
 int main()
 {
 	Sonar s;
+	int d;
 	while(1) {
-		cout << "\nS: " << s.getDistance() << std::flush;
-		usleep(500000);
+		d = s.getDistance();
+		if (d > 150) {
+			softToneWrite(BZ, 1000);
+			usleep(500000);
+			softToneWrite(BZ, 0);
+		}
+		else if (d > 100) {
+			softToneWrite(BZ, 1500);
+			usleep(500000);
+			softToneWrite(BZ, 0);
+		}
+		else if (d > 75) {
+			softToneWrite(BZ, 1750);
+			usleep(500000);
+			softToneWrite(BZ, 0);
+		}
+		else if (d > 50) {
+			softToneWrite(BZ, 2000);
+			usleep(500000);
+			softToneWrite(BZ, 0);
+		}
+		else if (d > 30) {
+			softToneWrite(BZ, 2500);
+			usleep(500000);
+			softToneWrite(BZ, 0);
+		}
+		//cout << "\n" << d << std::flush;
 	}
 	return 0;
 }
