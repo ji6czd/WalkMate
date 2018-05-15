@@ -1,4 +1,6 @@
 #include <iostream>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
 #include <cstdlib>
 #include <string>
 #include <wiringPi.h>
@@ -12,16 +14,25 @@
 
 const double SoundVelocity=0.017;
 const unsigned int MaxEchoTime=50000;
-
+const unsigned int iRange=400;
+using boost::thread;
 class Sonar {
 public:
 	Sonar();
 	~Sonar();
-	bool Ping();
-	unsigned int getDistance() { Ping(); return Distance; };
+	bool Start();
+	bool Stop();
+	unsigned int getDistance() { return Distance; };
+	int CalcBeepSleepTime()
+	{ return Distance ? 1000000/(iRange/Distance) : 0; }; 
 private:
+	bool Ping();
+	void Measure();
 	unsigned int uSec;
 	unsigned int Distance;;
+	bool fault;
+	thread SonarThread;
+	thread TimerThread;
 };
 
 Sonar::Sonar()
@@ -35,6 +46,7 @@ Sonar::Sonar()
 
 Sonar::~Sonar()
 {
+	Stop();
 	return;
 }
 
@@ -71,48 +83,54 @@ bool Sonar::Ping()
 		}
 		// cout << lexical_cast<string>(RealDistance) << std::endl;
 		Distance = rInt;
+		fault = false;
 		return true;
 	} else {
-		Distance = 0;
+		if (!Distance) Distance = 0;
+		fault = true;
 		return false;
 	}
 }
 
-using std::string;
-using std::cout;
-using std::endl;
+bool Sonar::Start()
+{
+  thread th(&Sonar::Measure, this);
+	SonarThread = move(th);
+	SonarThread.detach();
+  return true;
+}
+
+bool Sonar::Stop()
+{
+	SonarThread.interrupt();
+	return true;
+}
+
+void Sonar::Measure()
+{
+	int d;
+	while(1) {
+		Ping();
+		usleep(100000);
+	}
+	return;
+}
+
+using namespace std;
 int main()
 {
 	Sonar s;
-	int d;
+	s.Start();
 	while(1) {
-		d = s.getDistance();
-		if (d > 150) {
-			softToneWrite(BZ, 1000);
-			usleep(500000);
-			softToneWrite(BZ, 0);
-		}
-		else if (d > 100) {
-			softToneWrite(BZ, 1500);
-			usleep(500000);
-			softToneWrite(BZ, 0);
-		}
-		else if (d > 75) {
-			softToneWrite(BZ, 1750);
-			usleep(500000);
-			softToneWrite(BZ, 0);
-		}
-		else if (d > 50) {
+ 		cout << "D: " << s.getDistance() << endl;
+		if (s.getDistance()) {
 			softToneWrite(BZ, 2000);
-			usleep(500000);
-			softToneWrite(BZ, 0);
+		} else {
+			softToneWrite(BZ, 1500);
 		}
-		else if (d > 30) {
-			softToneWrite(BZ, 2500);
-			usleep(500000);
-			softToneWrite(BZ, 0);
-		}
-		//cout << "\n" << d << std::flush;
+		usleep(50000);
+		softToneWrite(BZ, 0);
+		usleep(400000);
 	}
 	return 0;
 }
