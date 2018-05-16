@@ -8,13 +8,13 @@
 #include <time.h>
 #include <unistd.h>
 
-#define TRIG 24
-#define ECHO 23
-#define BZ 13
+#define TRIG 23
+#define ECHO 24
+#define BZ 18
 
 const double SoundVelocity=0.017;
-const unsigned int MaxEchoTime=50000;
-const unsigned int iRange=400;
+const unsigned int MaxEchoTime=20000; // usec
+const int iRange=400; // Sonar rangecouts
 using boost::thread;
 class Sonar {
 public:
@@ -28,9 +28,9 @@ public:
 private:
 	bool Ping();
 	void Measure();
-	unsigned int uSec;
+	unsigned int uSec; // echo time
 	unsigned int Distance;;
-	bool fault;
+	bool fault; // pong not return
 	thread SonarThread;
 	thread TimerThread;
 };
@@ -69,8 +69,8 @@ bool Sonar::Ping()
 		;
 	}
 	clock_gettime(CLOCK_MONOTONIC, &endtime);
-	//std::cout << "I: " << pintime.tv_nsec << std::endl;
-	//std::cout << "I: " << inittime.tv_nsec << std::endl;
+	//std::cout << "Is: " << pintime.tv_nsec << std::endl;
+	//std::cout << "Ie: " << inittime.tv_nsec << std::endl;
 	//std::cout << "S: " << starttime.tv_nsec << std::endl;
 	//std::cout << "E: " << endtime.tv_nsec << std::endl;
 	uSec = (endtime.tv_sec - starttime.tv_sec)*1000000;
@@ -121,16 +121,21 @@ int main()
 {
 	Sonar s;
 	s.Start();
+	unsigned int d=0;
 	while(1) {
- 		cout << "D: " << s.getDistance() << endl;
-		if (s.getDistance()) {
-			softToneWrite(BZ, 2000);
-		} else {
-			softToneWrite(BZ, 1500);
-		}
-		usleep(50000);
-		softToneWrite(BZ, 0);
+		//d = s.getDistance();
 		usleep(400000);
+		cout << "d:" << s.getDistance() << "\r" << flush;
+		if (!d) continue;
+		if (d < 300) {
+			softToneWrite(BZ, 1000);
+		} else if (d < 150) {
+			softToneWrite(BZ, 2000);
+		} else if (d < 75){
+			softToneWrite(BZ, 4000);
+		}
+		usleep(80000);
+		softToneWrite(BZ, 0);
 	}
 	return 0;
 }
