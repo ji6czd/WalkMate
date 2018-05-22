@@ -13,8 +13,9 @@
 #define BZ 18
 
 const double SoundVelocity=0.017;
-const unsigned int MaxEchoTime=20000; // usec
-const int iRange=400; // Sonar rangecouts
+const unsigned int MaxEchoTime=30000; // usec 510cm
+const unsigned int MinEchoTime = 1000; // usec 17cm
+const int iRange=300; // Sonar rangecouts
 using boost::thread;
 class Sonar {
 public:
@@ -66,7 +67,16 @@ bool Sonar::Ping()
 	// Pong!
 	clock_gettime(CLOCK_MONOTONIC, &starttime);
 	while (digitalRead(ECHO) == HIGH) {
-		;
+		timespec p; // passed time
+		clock_gettime(CLOCK_MONOTONIC, &p);
+		int u = (p.tv_sec - starttime.tv_sec)*1000000;
+		u += (p.tv_nsec - starttime.tv_nsec)/1000;
+		if (u > MaxEchoTime) {
+			// Timeout
+			Distance=0;
+			fault=true;
+			return false;
+		}
 	}
 	clock_gettime(CLOCK_MONOTONIC, &endtime);
 	//std::cout << "Is: " << pintime.tv_nsec << std::endl;
@@ -75,21 +85,22 @@ bool Sonar::Ping()
 	//std::cout << "E: " << endtime.tv_nsec << std::endl;
 	uSec = (endtime.tv_sec - starttime.tv_sec)*1000000;
 	uSec += endtime.tv_nsec/1000 - starttime.tv_nsec/1000;
-	if (uSec < MaxEchoTime) {
-		double RealDistance = uSec * SoundVelocity;
-		int rInt = RealDistance; // 整数部だけ
-		if ((RealDistance-rInt) > 0.5) {
-			rInt++;
-		}
-		// cout << lexical_cast<string>(RealDistance) << std::endl;
-		Distance = rInt;
-		fault = false;
-		return true;
-	} else {
-		if (!Distance) Distance = 0;
-		fault = true;
+	//std::cout << uSec   << std::endl;
+	if (uSec < MinEchoTime) {
+		// Sensor error
+		Distance=0;
+		fault=true;
 		return false;
 	}
+	double RealDistance = uSec * SoundVelocity;
+	int rInt = RealDistance; // 整数部だけ
+	if ((RealDistance-rInt) > 0.5) {
+		rInt++;
+	}
+	// cout << lexical_cast<string>(RealDistance) << std::endl;
+	Distance = rInt;
+	fault = false;
+	return true;
 }
 
 bool Sonar::Start()
@@ -110,7 +121,8 @@ void Sonar::Measure()
 {
 	int d;
 	while(1) {
-		Ping();
+		if (Ping() == false) {
+		}
 		usleep(100000);
 	}
 	return;
@@ -121,20 +133,16 @@ int main()
 {
 	Sonar s;
 	s.Start();
-	unsigned int d=0;
 	while(1) {
-		d = s.getDistance();
-		usleep(400000);
-		if (!d) continue;
-		if (d < 300) {
-			softToneWrite(BZ, 1000);
-		} else if (d < 150) {
-			softToneWrite(BZ, 2000);
-		} else if (d < 75){
-			softToneWrite(BZ, 4000);
+		unsigned int d = s.getDistance();
+		if(d > 15) {
+			unsigned int t = ((double)iRange/d)*400;
+			//cout << d << "   \r" << flush;
+			softToneWrite(BZ, t);
+			usleep(130000);
+			softToneWrite(BZ, 0);
 		}
-		usleep(80000);
-		softToneWrite(BZ, 0);
+		usleep(20000);
 	}
 	return 0;
 }
