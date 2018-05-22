@@ -136,7 +136,7 @@ int main()
 	while(1) {
 		unsigned int d = s.getDistance();
 		if(d > 15) {
-			unsigned int t = ((double)iRange/d)*400;
+			unsigned int t = ((double)iRange/d)*200;
 			//cout << d << "   \r" << flush;
 			softToneWrite(BZ, t);
 			usleep(130000);
