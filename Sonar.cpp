@@ -65,10 +65,18 @@ bool Sonar::Ping()
 	// Wait pong...
 	clock_gettime(CLOCK_MONOTONIC, &inittime);
 	while (digitalRead(ECHO) == LOW) {
-		;
+		clock_gettime(CLOCK_MONOTONIC, &starttime);
+		int u = (starttime.tv_sec - inittime.tv_sec)*1000000;
+		u += (starttime.tv_nsec - inittime.tv_nsec)/1000;
+		if (u > MaxEchoTime) {
+			// Timeout
+			Distance=0;
+			fault=true;
+			std::cout << "-" << std::flush;
+			return false;
+		}
 	}
 	// Pong!
-	clock_gettime(CLOCK_MONOTONIC, &starttime);
 	mCount++;
 	while (digitalRead(ECHO) == HIGH) {
 		timespec p; // passed time
@@ -79,6 +87,7 @@ bool Sonar::Ping()
 			// Timeout
 			Distance=0;
 			fault=true;
+			std::cout << "." << std::flush;
 			return false;
 		}
 	}
@@ -95,6 +104,7 @@ bool Sonar::Ping()
 		// Sensor error
 		Distance=0;
 		fault=true;
+		std::cout << "m" << std::flush;
 		return false;
 	}
 	double RealDistance = uSec * SoundVelocity;
@@ -105,11 +115,13 @@ bool Sonar::Ping()
 	// cout << lexical_cast<string>(RealDistance) << std::endl;
 	Distance = rInt;
 	fault = false;
+	//std::cout << rint << std::endl;
 	return true;
 }
 
 bool Sonar::Start()
 {
+	std::cout << "Start" << std::endl;
   thread th(&Sonar::Measure, this);
 	SonarThread = move(th);
 	SonarThread.detach();
@@ -119,7 +131,7 @@ bool Sonar::Start()
 unsigned int Sonar::Stop()
 {
 	SonarThread.interrupt();
-	std::cout << mCount << std::endl;
+	std::cout << "Stop" << std::endl;
 	return mCount;
 }
 
@@ -128,8 +140,9 @@ void Sonar::Measure()
 	int d;
 	while(1) {
 		if (Ping() == false) {
+			// std::cout << "E" << std::endl;
 		}
-		usleep(1000);
+		usleep(1000000/MperS);
 	}
 	return;
 }
@@ -140,13 +153,17 @@ int main()
 	Sonar s;
 	s.Start();
 	while(1) {
-		unsigned int d = s.getDistance();
+		unsigned int d=0;
+		d = s.getDistance();
 		if(d > 15) {
-			unsigned int t = ((double)iRange/d)*200;
-			//cout << d << "   \r" << flush;
+			softToneWrite(BZ, 1500);
+			usleep(50000);
+			softToneWrite(BZ, 0);
+			usleep(d*5000);
+			/*unsigned int t = ((double)iRange/d)*200;
 			softToneWrite(BZ, t);
 			usleep(80000);
-			softToneWrite(BZ, 0);
+			softToneWrite(BZ, 0);*/
 		}
 		usleep(20000);
 	}
