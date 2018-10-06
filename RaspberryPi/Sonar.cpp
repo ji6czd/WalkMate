@@ -160,8 +160,7 @@ int main()
 			usleep(50000);
 			softToneWrite(BZ, 0);
 			usleep(d*5000);
-			/*unsigned int t = ((double)iRange/d)*200;
-			softToneWrite(BZ, t);
+			/*softToneWrite(BZ, t);
 			usleep(80000);
 			softToneWrite(BZ, 0);*/
 		}
