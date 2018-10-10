@@ -18,6 +18,7 @@ const unsigned int MinEchoTime = 1000; // usec 17cm
 const int iRange=300; // Sonar range
 const int MperS=40; // measure per sec
 using boost::thread;
+
 class Sonar {
 public:
 	Sonar();
@@ -142,7 +143,7 @@ void Sonar::Measure()
 		if (Ping() == false) {
 			// std::cout << "E" << std::endl;
 		}
-		usleep(1000000/MperS);
+		delay(1000/MperS);
 	}
 	return;
 }
@@ -157,14 +158,11 @@ int main()
 		d = s.getDistance();
 		if(d > 15) {
 			softToneWrite(BZ, 1500);
-			usleep(50000);
+			delay(30);
 			softToneWrite(BZ, 0);
-			usleep(d*5000);
-			/*softToneWrite(BZ, t);
-			usleep(80000);
-			softToneWrite(BZ, 0);*/
+			delay(d*5);
 		}
-		usleep(20000);
+		delay(20);
 	}
 	return 0;
 }
