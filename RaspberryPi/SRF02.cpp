@@ -8,23 +8,14 @@
 #include <time.h>
 #include <unistd.h>
 
-#define TRIG 23
-#define ECHO 24
 #define BZ 18
 
-const double SoundVelocity=0.017;
-const unsigned int MaxEchoTime=30000; // usec 510cm
-const unsigned int MinEchoTime = 1000; // usec 17cm
-const int iRange=300; // Sonar range
-const int MperS=40; // measure per sec
-using boost::thread;
-
-class Sonar {
+class SRF02 {
 public:
-	Sonar();
-	~Sonar();
+	SRF02();
+	~SRF02();
 	bool Start();
-	unsigned int Stop();
+	 bool Stop();
 	unsigned int getDistance() { return Distance; };
 	int CalcBeepSleepTime()
 	{ return Distance ? 1000000/(iRange/Distance) : 0; }; 
@@ -39,7 +30,7 @@ private:
 	unsigned int mCount;
 };
 
-Sonar::Sonar()
+Sonar::SRF02()
 {
 	if (wiringPiSetupGpio()) return;
 	softToneCreate(BZ);
