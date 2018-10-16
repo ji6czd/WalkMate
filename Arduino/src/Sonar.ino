@@ -1,78 +1,56 @@
-#include <Wire.h>
 #define BZ 9
-#define SRF02 0x70
+#define BW 8
+#define PW 7
 
-void wait()
+#define MAX 3
+
+static int count=0;
+
+void beep(int range)
 {
-	Wire.beginTransmission(SRF02);
-	Wire.write(0);
-	Wire.endTransmission(true);
-	Wire.requestFrom(SRF02, 1);
-	int len = Wire.available();
-	Serial.println(len);
-}
-
-
-bool startRanging()
-{
-	Wire.beginTransmission(SRF02);
-	Wire.write(0);
-	Wire.write(0x51);
-	int ret = Wire.endTransmission();
-	if (ret) {
-		Serial.println(ret);
-		return false;
-	}
-	return true;
-}
-
-int getRange()
-{
-	int range=0;
-	Wire.beginTransmission(SRF02);
-	Wire.write(0x02);
-	if (Wire.endTransmission()) return 0;
-	Wire.requestFrom(SRF02, 2);
-	if (Wire.available() >= 2) {
-		range = Wire.read();
-		range <<= 8;
-		range |= Wire.read();
-	}
-	return range;
-}
-
-void beep(int freq)
-{
+	int freq=range/30;
+	if (freq>13) freq=13;
+	else if (freq>10) freq=10;
+	else if (freq>7) freq=7;
+	else if (freq>4) freq=4;
+	freq=1500-(freq*120);
 	tone(BZ, freq);
 	delay(30);
 	noTone(BZ);
 }
 
+int Ranging()
+{
+	unsigned int time=0;
+	unsigned long begin, end;
+	int range=0;
+
+	while (digitalRead(PW) == LOW) ;
+	begin=micros();
+	while(digitalRead(PW)) ;
+	end=micros();
+	if (begin > end) return 0;
+	time=end-begin;
+	range=time/57;
+	return range;
+}
+
 void setup()
 {
-	Wire.begin();
 	Serial.begin(115200);
 	pinMode(BZ, OUTPUT);
+	pinMode(BW, OUTPUT);
+	pinMode(PW, INPUT);
+	digitalWrite(BW, HIGH);
 }
 
 void loop()
 {
-	if (startRanging() == false) {
-		Serial.println("Error");
+	int range = Ranging();
+	if (count==MAX) {
+		beep(range);
+		count=0;
+	} else {
+		count++;
 	}
-	else {
-		delay(70);
-		int range = getRange();
-		Serial.println(range);
-		int freq=range/30;
-		if (freq>13) freq=13;
-		else if (freq>10) freq=10;
-		else if (freq>7) freq=7;
-		else if (freq>4) freq=4;
-		Serial.println(freq);
-		freq=1500-(freq*90);
-		beep(freq);
-		delay(200);
-	}
-	return;
 }
