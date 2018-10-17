@@ -2,18 +2,23 @@
 #define BW 8
 #define PW 7
 
-#define MAX 3
 
 static int count=0;
+static int Cycle=10;
 
 void beep(int range)
 {
-	int freq=range/30;
-	if (freq>13) freq=13;
-	else if (freq>10) freq=10;
-	else if (freq>7) freq=7;
-	else if (freq>4) freq=4;
-	freq=1500-(freq*120);
+	int freq=0;
+	if (range == 0) return;
+	if (range > 500) freq=500;
+	else if (range > 400) freq=750;
+	else if (freq > 300) freq=1000;
+	else if (freq > 200) freq=1250;
+	else if (range > 1500) freq = 1500;
+	else if (range > 100) freq = 1750;
+	else if (range > 70) freq = 2000;
+	else if (range > 40) freq > 2250;
+	else freq = 2500;
 	tone(BZ, freq);
 	delay(30);
 	noTone(BZ);
@@ -35,6 +40,14 @@ int Ranging()
 	return range;
 }
 
+void CalcCycle(int range)
+{
+	if (range>400) Cycle=10;
+	else if (range > 300) Cycle=7;
+	if (range > 200) Cycle=5;
+	else Cycle=3;
+}
+
 void setup()
 {
 	Serial.begin(115200);
@@ -47,7 +60,8 @@ void setup()
 void loop()
 {
 	int range = Ranging();
-	if (count==MAX) {
+	CalcCycle(range);
+	if (count==Cycle) {
 		beep(range);
 		count=0;
 	} else {
