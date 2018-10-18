@@ -1,78 +1,72 @@
-#include <Wire.h>
 #define BZ 9
-#define SRF02 0x70
+#define BW 8
+#define PW 7
 
-void wait()
+
+static int count=0;
+static int Cycle=10;
+
+void beep(int range)
 {
-	Wire.beginTransmission(SRF02);
-	Wire.write(0);
-	Wire.endTransmission(true);
-	Wire.requestFrom(SRF02, 1);
-	int len = Wire.available();
-	Serial.println(len);
-}
-
-
-bool startRanging()
-{
-	Wire.beginTransmission(SRF02);
-	Wire.write(0);
-	Wire.write(0x51);
-	int ret = Wire.endTransmission();
-	if (ret) {
-		Serial.println(ret);
-		return false;
-	}
-	return true;
-}
-
-int getRange()
-{
-	int range=0;
-	Wire.beginTransmission(SRF02);
-	Wire.write(0x02);
-	if (Wire.endTransmission()) return 0;
-	Wire.requestFrom(SRF02, 2);
-	if (Wire.available() >= 2) {
-		range = Wire.read();
-		range <<= 8;
-		range |= Wire.read();
-	}
-	return range;
-}
-
-void beep(int freq)
-{
+	int freq=0;
+	if (range == 0) return;
+	if (range > 500) freq=500;
+	else if (range > 400) freq=750;
+	else if (range > 300) freq=1000;
+	else if (range > 250) freq=1250;
+	else if (range > 200) freq = 1500;
+	else if (range > 150) freq = 1750;
+	else if (range > 100) freq = 2000;
+	else if (range > 70) freq = 2250;
+	else if (range > 40) freq = 2500;
+	else freq = 2750;
 	tone(BZ, freq);
 	delay(30);
 	noTone(BZ);
 }
 
+int Ranging()
+{
+	unsigned int time=0;
+	unsigned long begin, end;
+	int range=0;
+
+	while (digitalRead(PW) == LOW) ;
+	begin=micros();
+	while(digitalRead(PW)) ;
+	end=micros();
+	if (begin > end) return 0;
+	time=end-begin;
+	range=time/57;
+	return range;
+}
+
+void CalcCycle(int range)
+{
+	if (range>400) Cycle=15;
+	else if (range > 300) Cycle=10;
+	else if (range > 200) Cycle=7;
+	else if (range > 100) Cycle=5;
+	else Cycle=3;
+}
+
 void setup()
 {
-	Wire.begin();
 	Serial.begin(115200);
 	pinMode(BZ, OUTPUT);
+	pinMode(BW, OUTPUT);
+	pinMode(PW, INPUT);
+	digitalWrite(BW, HIGH);
 }
 
 void loop()
 {
-	if (startRanging() == false) {
-		Serial.println("Error");
+	int range = Ranging();
+	CalcCycle(range);
+	if (count>=Cycle) {
+		beep(range);
+		count=0;
+	} else {
+		count++;
 	}
-	else {
-		delay(70);
-		int range = getRange();
-		Serial.println(range);
-		int freq=range/30;
-		if (freq>13) freq=13;
-		else if (freq>10) freq=10;
-		else if (freq>7) freq=7;
-		else if (freq>4) freq=4;
-		Serial.println(freq);
-		freq=1500-(freq*90);
-		beep(freq);
-		delay(200);
-	}
-	return;
 }
