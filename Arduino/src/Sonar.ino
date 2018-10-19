@@ -1,10 +1,19 @@
-#define BZ 9
+#define BZ 13
 #define BW 14
 #define PW 12
 
-
+static int channel = 0;
+static int resolution = 8;
 static int count=0;
 static int Cycle=10;
+
+void espTone(int freq)
+{
+	ledcWriteTone(channel, freq);
+	ledcWrite(channel, 10);
+	delay(30);
+	ledcWriteTone(channel, 0);
+}
 
 void beep(int range)
 {
@@ -19,9 +28,7 @@ void beep(int range)
 	else if (range <= 400) freq=1000;
 	else if (range <= 500) freq=750;
 	else if (range > 500) freq=500;
-	Serial.print(freq);
-	Serial.print(":");
-	Serial.println(Cycle);
+	espTone(freq);
 }
 
 void CalcCycle(int range)
@@ -52,7 +59,8 @@ int Ranging()
 void setup()
 {
 	Serial.begin(115200);
-	pinMode(BZ, OUTPUT);
+	ledcSetup(channel, 1000, resolution);
+	ledcAttachPin(BZ, channel);
 	pinMode(BW, OUTPUT);
 	pinMode(PW, INPUT);
 	digitalWrite(BW, HIGH);
@@ -69,3 +77,4 @@ void loop()
 		count++;
 	}
 }
+
