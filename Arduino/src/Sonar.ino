@@ -1,6 +1,6 @@
 #define BZ 9
-#define BW 8
-#define PW 7
+#define BW 14
+#define PW 12
 
 
 static int count=0;
@@ -10,19 +10,27 @@ void beep(int range)
 {
 	int freq=0;
 	if (range == 0) return;
-	if (range > 500) freq=500;
-	else if (range > 400) freq=750;
-	else if (range > 300) freq=1000;
-	else if (range > 250) freq=1250;
-	else if (range > 200) freq = 1500;
-	else if (range > 150) freq = 1750;
-	else if (range > 100) freq = 2000;
-	else if (range > 70) freq = 2250;
-	else if (range > 40) freq = 2500;
-	else freq = 2750;
-	tone(BZ, freq);
-	delay(30);
-	noTone(BZ);
+	if (range <= 40) freq = 2500;
+	else if (range <= 70) freq = 2250;
+	else if (range <= 100) freq = 2000;
+	else if (range <= 150) freq = 1750;
+	else if (range <= 200) freq = 1500;
+	else if (range <= 300) freq=1250;
+	else if (range <= 400) freq=1000;
+	else if (range <= 500) freq=750;
+	else if (range > 500) freq=500;
+	Serial.print(freq);
+	Serial.print(":");
+	Serial.println(Cycle);
+}
+
+void CalcCycle(int range)
+{
+	if (range <= 100) Cycle=3;
+	else if (range <= 200) Cycle=5;
+	else if (range <= 300) Cycle=7;
+	else if (range <= 400) Cycle=10;
+	else if (range > 400) Cycle=15;
 }
 
 int Ranging()
@@ -39,15 +47,6 @@ int Ranging()
 	time=end-begin;
 	range=time/57;
 	return range;
-}
-
-void CalcCycle(int range)
-{
-	if (range>400) Cycle=15;
-	else if (range > 300) Cycle=10;
-	else if (range > 200) Cycle=7;
-	else if (range > 100) Cycle=5;
-	else Cycle=3;
 }
 
 void setup()
