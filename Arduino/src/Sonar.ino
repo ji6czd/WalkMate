@@ -7,12 +7,20 @@ static int resolution = 8;
 static int count=0;
 static int Cycle=10;
 
-void espTone(int freq)
+void espTone(int freq, int msec)
 {
 	ledcWriteTone(channel, freq);
-	ledcWrite(channel, 10);
-	delay(30);
+	ledcWrite(channel, 15);
+	delay(msec);
 	ledcWriteTone(channel, 0);
+}
+
+void startTone()
+{
+	delay(100);
+	espTone(1000, 100);
+	espTone(1250, 100);
+	espTone(1500, 100);
 }
 
 void beep(int range)
@@ -28,7 +36,7 @@ void beep(int range)
 	else if (range <= 400) freq=1000;
 	else if (range <= 500) freq=750;
 	else if (range > 500) freq=500;
-	espTone(freq);
+	espTone(freq, 30);
 }
 
 void CalcCycle(int range)
@@ -53,6 +61,7 @@ int Ranging()
 	if (begin > end) return 0;
 	time=end-begin;
 	range=time/57;
+	if (range > 650) range=0;
 	return range;
 }
 
@@ -64,6 +73,7 @@ void setup()
 	pinMode(BW, OUTPUT);
 	pinMode(PW, INPUT);
 	digitalWrite(BW, HIGH);
+	startTone();
 }
 
 void loop()
@@ -77,4 +87,3 @@ void loop()
 		count++;
 	}
 }
-
