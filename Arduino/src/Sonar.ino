@@ -11,7 +11,7 @@ static volatile int pRange;
 void espTone(int freq, int msec)
 {
 	ledcWriteTone(channel, freq);
-	ledcWrite(channel, 15);
+	ledcWrite(channel, 255);
 	delay(msec);
 	ledcWriteTone(channel, 0);
 }
@@ -37,7 +37,7 @@ void beep(int range)
 	else if (range <= 400) freq=1000;
 	else if (range <= 500) freq=750;
 	else if (range > 500) freq=500;
-	espTone(freq, 30);
+	espTone(freq, 50);
 }
 
 void rangeDelay(int range)
