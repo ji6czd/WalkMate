@@ -6,6 +6,7 @@ static int channel = 0;
 static int resolution = 8;
 static int count=0;
 static int Cycle=10;
+static volatile int pRange;
 
 void espTone(int freq, int msec)
 {
@@ -39,30 +40,30 @@ void beep(int range)
 	espTone(freq, 30);
 }
 
-void CalcCycle(int range)
+void rangeDelay(int range)
 {
-	if (range <= 100) Cycle=3;
-	else if (range <= 200) Cycle=5;
-	else if (range <= 300) Cycle=7;
-	else if (range <= 400) Cycle=10;
-	else if (range > 400) Cycle=15;
+	int delayTime=0;
+	if (range <= 100) delayTime=150;
+	else if (range <= 200) delayTime=250;
+	else if (range <= 300) delayTime=350;
+	else if (range <= 400) delayTime=500;
+	else if (range > 400) delayTime=750;
+	delay(delayTime);
 }
 
-int Ranging()
+void Ranging()
 {
 	unsigned int time=0;
 	unsigned long begin, end;
 	int range=0;
-
-	while (digitalRead(PW) == LOW) ;
 	begin=micros();
 	while(digitalRead(PW)) ;
 	end=micros();
-	if (begin > end) return 0;
+	if (begin > end) return;
 	time=end-begin;
 	range=time/57;
-	if (range > 650) range=0;
-	return range;
+	if (range > 650) return;
+	pRange = range;
 }
 
 void setup()
@@ -73,17 +74,14 @@ void setup()
 	pinMode(BW, OUTPUT);
 	pinMode(PW, INPUT);
 	digitalWrite(BW, HIGH);
+	// Interupt setting
+	attachInterrupt( PW, Ranging, RISING);
+	// Announce bootup
 	startTone();
 }
 
 void loop()
 {
-	int range = Ranging();
-	CalcCycle(range);
-	if (count>=Cycle) {
-		beep(range);
-		count=0;
-	} else {
-		count++;
-	}
+ rangeDelay(pRange);
+	beep(pRange);
 }
