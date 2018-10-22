@@ -1,3 +1,7 @@
+#include <thread>
+
+using namespace std;
+
 #define BZ 13
 #define BW 14
 #define PW 12
@@ -8,23 +12,40 @@ static int count=0;
 static int Cycle=10;
 static volatile int pRange;
 
-void espTone(int freq, int msec)
+
+class soundOut {
+public:
+  void beep(int f, int m) {
+    freq=f;
+    mSec=m;
+    thread th(beepFunc);
+    th.detach();
+  };
+  void waitBeep(int f, int m) {
+    freq=f;
+    mSec=m;
+    thread th(beepFunc);
+    th.join();
+  };
+private:
+  static int freq;
+  static int mSec;
+  static void beepFunc();
+};
+
+int soundOut::freq, soundOut::mSec;
+
+void soundOut::beepFunc()
 {
-	ledcWriteTone(channel, freq);
-	ledcWrite(channel, 255);
-	delay(msec);
-	ledcWriteTone(channel, 0);
+	ledcWriteTone(0, freq);
+	ledcWrite(0, 255);
+	delay(mSec);
+	ledcWriteTone(0, 0);
 }
 
-void startTone()
-{
-	delay(100);
-	espTone(1000, 100);
-	espTone(1250, 100);
-	espTone(1500, 100);
-}
+soundOut sOut;
 
-void beep(int range)
+void announce(int range)
 {
 	int freq=0;
 	if (range == 0) return;
@@ -37,7 +58,7 @@ void beep(int range)
 	else if (range <= 400) freq=1000;
 	else if (range <= 500) freq=750;
 	else if (range > 500) freq=500;
-	espTone(freq, 50);
+	sOut.beep(freq, 80);
 }
 
 void rangeDelay(int range)
@@ -66,6 +87,16 @@ void Ranging()
 	pRange = range;
 }
 
+void startup()
+{
+	Serial.println("WalkMate started");
+	sOut.waitBeep(1000, 150);
+	sOut.waitBeep(750, 150);
+	sOut.waitBeep(1250, 150);
+	sOut.waitBeep(1000, 250);
+	delay(100);
+}
+
 void setup()
 {
 	Serial.begin(115200);
@@ -77,11 +108,11 @@ void setup()
 	// Interupt setting
 	attachInterrupt( PW, Ranging, RISING);
 	// Announce bootup
-	startTone();
+	startup();
 }
 
 void loop()
 {
  rangeDelay(pRange);
-	beep(pRange);
+ announce(pRange);
 }
