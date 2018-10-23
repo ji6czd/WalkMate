@@ -1,49 +1,12 @@
-#include <thread>
-
-using namespace std;
+#include "soundOut.hpp"
 
 #define BZ 13
-#define BW 14
 #define PW 12
-
-static int channel = 0;
-static int resolution = 8;
-static int count=0;
-static int Cycle=10;
-static volatile int pRange;
-
-
-class soundOut {
-public:
-  void beep(int f, int m) {
-    freq=f;
-    mSec=m;
-    thread th(beepFunc);
-    th.detach();
-  };
-  void waitBeep(int f, int m) {
-    freq=f;
-    mSec=m;
-    thread th(beepFunc);
-    th.join();
-  };
-private:
-  static int freq;
-  static int mSec;
-  static void beepFunc();
-};
-
-int soundOut::freq, soundOut::mSec;
-
-void soundOut::beepFunc()
-{
-	ledcWriteTone(0, freq);
-	ledcWrite(0, 255);
-	delay(mSec);
-	ledcWriteTone(0, 0);
-}
+#define BW 14
 
 soundOut sOut;
+
+static volatile int range;
 
 void announce(int range)
 {
@@ -100,14 +63,13 @@ void startup()
 void setup()
 {
 	Serial.begin(115200);
-	ledcSetup(channel, 1000, resolution);
-	ledcAttachPin(BZ, channel);
 	pinMode(BW, OUTPUT);
 	pinMode(PW, INPUT);
 	digitalWrite(BW, HIGH);
 	// Interupt setting
 	attachInterrupt( PW, Ranging, RISING);
 	// Announce bootup
+	sOut.init(BZ, 0);
 	startup();
 }
 
