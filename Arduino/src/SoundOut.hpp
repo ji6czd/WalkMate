@@ -15,4 +15,6 @@ private:
   static int vol;
   static void beepFunc();
 };
+extern soundOut sOut;
+
 #endif

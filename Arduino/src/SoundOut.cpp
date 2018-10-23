@@ -2,10 +2,12 @@
 #include "freertos/task.h"
 #include "Arduino.h"
 #include "SoundOut.hpp"
+
 #include <thread>
 
 using std::thread;
 int soundOut::freq, soundOut::mSec, soundOut::vol;
+soundOut sOut;
 
 void soundOut::beep(int f, int m)
 {
@@ -35,4 +37,5 @@ void soundOut::init(int pin, int channel)
 {
 	ledcSetup(channel, 1000, 8);
 	ledcAttachPin(pin, channel);
+	vol=10;
 }
