@@ -21,7 +21,7 @@ void Sonar::init()
 
 void Sonar::Announce()
 {
-	int freq=0;
+ int freq=0;
 	if (curRange == 0) return;
 	if (curRange <= 40) freq = 2500;
 	else if (curRange <= 70) freq = 2250;
@@ -48,6 +48,7 @@ void Sonar::rangeDelay()
 
 void Sonar::Ranging()
 {
+	Serial.print(".");
 	unsigned int time=0;
 	unsigned long begin, end;
 	int range=0;
@@ -63,8 +64,7 @@ void Sonar::Ranging()
 
 void Sonar::startRanging()
 {
-	while(1) {
-		Announce();
-		rangeDelay();
-	}
+	Serial.println("Start ranging...");
+	std::thread th([this]() {for(;;) { Announce();	rangeDelay(); } });
+	th.detach();
 }

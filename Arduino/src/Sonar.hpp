@@ -1,5 +1,6 @@
 #ifndef _SONAR_HPP_
 #define _SONAR_HPP_
+#include <thread>
 
 class Sonar
 {
