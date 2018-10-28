@@ -33,9 +33,9 @@ void soundOut::beepFunc()
 	ledcWriteTone(0, 0);
 }
 
-void soundOut::init(int pin, int channel)
+void soundOut::begin()
 {
-	ledcSetup(channel, 1000, 8);
-	ledcAttachPin(pin, channel);
-	vol=10;
+	ledcSetup(0, 1000, 13);
+	ledcAttachPin(25, 0);
+	vol=1;
 }

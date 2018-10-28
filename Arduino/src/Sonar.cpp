@@ -10,7 +10,7 @@
 
 volatile unsigned int Sonar::curRange;
 
-void Sonar::init()
+void Sonar::begin()
 {
 	pinMode(BW, OUTPUT);
 	pinMode(PW, INPUT);

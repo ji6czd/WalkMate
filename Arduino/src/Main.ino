@@ -1,7 +1,7 @@
 #include "soundOut.hpp"
 #include "Sonar.hpp"
 Sonar sn;
-#define BZ 13
+#define BZ 25
 
 void startup()
 {
@@ -17,8 +17,8 @@ void setup()
 {
 	Serial.begin(115200);
 	// Announce bootup
-	sOut.init(BZ, 0);
-	sn.init();
+	sOut.begin();
+	sn.begin();
 	Serial.println("Initializing sound output...");
 	startup();
 	sn.startRanging();

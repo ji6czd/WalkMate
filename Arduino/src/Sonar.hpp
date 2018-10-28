@@ -5,7 +5,7 @@
 class Sonar
 {
 public:
-	void init();
+	void begin();
 	void startRanging();
 private:
 	void Announce();
