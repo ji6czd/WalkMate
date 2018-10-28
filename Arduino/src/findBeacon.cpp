@@ -1,10 +1,12 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "Arduino.h"
 #include <M5Stack.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 #include <vector>
-#include "beaconFound.h"
 
 using namespace std;
 
@@ -18,36 +20,33 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 
 BLEScan* pBLEScan;
 
-void setup()
+void findBeacon::begin()
 {
-	M5.begin();
-	M5.Speaker.begin();
   Serial.println("Scanning...");
   BLEDevice::init("");
   pBLEScan = BLEDevice::getScan(); //create new scan
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
-	xTaskCreatePinnedToCore(findDeviceTask, "findDeviceTask", 8192, NULL, 1, NULL,1);
+	xTaskCreatePinnedToCore(findDeviceTask, "findDeviceTask", 4096, NULL, 1, NULL,1);
 }
 
-bool isBeacon(string data) {
-  const string beaconHeader = {0x4c, 0x00, 0x02, 0x15};
-	if (data.find(beaconHeader) == 0) {
+bool findDevice::isBeacon(string data) {
+  const string iBeaconHeader = {0x4c, 0x00, 0x02, 0x15}; // Apple iBeacon
+	if (data.find(iBeaconHeader) == 0) {
 		return true;
 	}
 	return false;
 }
 
-bool Announcenewdevice(BLEAdvertisedDevice &dev)
+bool findBeacon::Announcenewdevice(BLEAdvertisedDevice &dev)
 {
 	string ManufactureData = dev.getManufacturerData();;
 	if (isBeacon(ManufactureData)) {
-		M5.Speaker.playMusic(beaconFound_raw, beaconFound_raw_len, 8000);
 		Serial.println("Beacon found.");
 	}
 }
 
-int DetectNewDevices(BLEScanResults &newDevices, BLEScanResults &oldDevices)
+int findBeacon::DetectNewDevices(BLEScanResults &newDevices, BLEScanResults &oldDevices)
 {
 	BLEAdvertisedDevice dev;
 	int found=0;
@@ -69,7 +68,7 @@ int DetectNewDevices(BLEScanResults &newDevices, BLEScanResults &oldDevices)
 	return found;
 }
 
-void findDeviceTask(void *pvParameters) {
+void findBeacon::findDeviceTask(void *pvParameters) {
 	static BLEScanResults existDevices;
 	BLEScanResults foundDevices;
 	for (;;) {
@@ -81,6 +80,3 @@ void findDeviceTask(void *pvParameters) {
 	}
 }
 
-void loop() {
-	M5.update();
-}
