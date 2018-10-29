@@ -10,7 +10,7 @@
 
 using namespace std;
 
-int scanTime = 3; //In seconds
+const int scanTime = 3; //In seconds
 
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 	void onResult(BLEAdvertisedDevice advertisedDevice) {
@@ -30,7 +30,7 @@ void findBeacon::begin()
 	xTaskCreatePinnedToCore(findDeviceTask, "findDeviceTask", 4096, NULL, 1, NULL,1);
 }
 
-bool findDevice::isBeacon(string data) {
+bool findBeacon::isBeacon(string data) {
   const string iBeaconHeader = {0x4c, 0x00, 0x02, 0x15}; // Apple iBeacon
 	if (data.find(iBeaconHeader) == 0) {
 		return true;
