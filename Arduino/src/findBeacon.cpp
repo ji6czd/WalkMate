@@ -8,10 +8,10 @@
 #include <BLEAdvertisedDevice.h>
 #include <vector>
 #include "findBeacon.hpp"
-
+#include "soundOut.hpp"
 using namespace std;
 
-const int scanTime = 3; //In seconds
+const int scanTime = 2; //In seconds
 
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 	void onResult(BLEAdvertisedDevice advertisedDevice) {
@@ -28,7 +28,7 @@ void findBeacon::begin()
   pBLEScan = BLEDevice::getScan(); //create new scan
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
-  //xTaskCreatePinnedToCore(findDeviceTask, "findDeviceTask", 4096, NULL, 1, NULL,1);
+  xTaskCreatePinnedToCore(findDeviceTask, "findDeviceTask", 4096, NULL, 1, NULL,1);
 }
 
 bool findBeacon::isBeacon(string data)
@@ -45,6 +45,7 @@ bool findBeacon::Announcenewdevice(BLEAdvertisedDevice &dev)
 	string ManufactureData = dev.getManufacturerData();;
 	if (isBeacon(ManufactureData)) {
 		Serial.println("Beacon found.");
+		sOut.beep(1500, 10);
 	}
 }
 

@@ -14,11 +14,11 @@
 using namespace std;
 class findBeacon {
 public:
-  void begin();
+  static void begin();
 private:
-  bool isBeacon(string data);
-  bool Announcenewdevice(BLEAdvertisedDevice &dev);
-  int DetectNewDevices(BLEScanResults &newDevices, BLEScanResults &oldDevices);
-  void findDeviceTask(void *pvParameters);
+  static bool isBeacon(string data);
+  static bool Announcenewdevice(BLEAdvertisedDevice &dev);
+  static int DetectNewDevices(BLEScanResults &newDevices, BLEScanResults &oldDevices);
+  static void findDeviceTask(void *pvParameters);
 };
 #endif
