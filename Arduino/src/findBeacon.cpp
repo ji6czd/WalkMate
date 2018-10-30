@@ -7,6 +7,7 @@
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 #include <vector>
+#include "findBeacon.hpp"
 
 using namespace std;
 
@@ -27,11 +28,12 @@ void findBeacon::begin()
   pBLEScan = BLEDevice::getScan(); //create new scan
   pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
   pBLEScan->setActiveScan(true); //active scan uses more power, but get results faster
-	xTaskCreatePinnedToCore(findDeviceTask, "findDeviceTask", 4096, NULL, 1, NULL,1);
+  //xTaskCreatePinnedToCore(findDeviceTask, "findDeviceTask", 4096, NULL, 1, NULL,1);
 }
 
-bool findBeacon::isBeacon(string data) {
-  const string iBeaconHeader = {0x4c, 0x00, 0x02, 0x15}; // Apple iBeacon
+bool findBeacon::isBeacon(string data)
+{
+	const string iBeaconHeader = {0x4c, 0x00, 0x02, 0x15}; // Apple iBeacon
 	if (data.find(iBeaconHeader) == 0) {
 		return true;
 	}

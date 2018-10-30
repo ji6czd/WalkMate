@@ -9,7 +9,9 @@
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
 #include <vector>
+#include <string>
 
+using namespace std;
 class findBeacon {
 public:
   void begin();
