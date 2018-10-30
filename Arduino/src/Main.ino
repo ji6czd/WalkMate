@@ -1,7 +1,8 @@
 #include "soundOut.hpp"
 #include "Sonar.hpp"
+#include "findBeacon.hpp"
 Sonar sn;
-#define BZ 25
+findBeacon fb;
 
 void startup()
 {
@@ -19,6 +20,7 @@ void setup()
 	// Announce bootup
 	sOut.begin();
 	sn.begin();
+	fb.begin();
 	Serial.println("Initializing sound output...");
 	startup();
 	sn.startRanging();
