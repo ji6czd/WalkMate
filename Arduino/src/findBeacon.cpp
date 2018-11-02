@@ -45,7 +45,7 @@ bool findBeacon::Announcenewdevice(BLEAdvertisedDevice &dev)
 	string ManufactureData = dev.getManufacturerData();;
 	if (isBeacon(ManufactureData)) {
 		Serial.println("Beacon found.");
-		sOut.beep(1500, 10);
+		sOut.morseOut('b');
 	}
 }
 
