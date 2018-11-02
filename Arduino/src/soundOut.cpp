@@ -75,6 +75,6 @@ void soundOut::morseSpace()
 void soundOut::begin()
 {
 	ledcSetup(0, 1000, 13);
-	ledcAttachPin(25, 0);
-	vol=1;
+	ledcAttachPin(13, 0);
+	vol=100;
 }
