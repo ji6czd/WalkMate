@@ -42,8 +42,8 @@ bool findBeacon::isBeacon(string data)
 
 bool findBeacon::Announcenewdevice(BLEAdvertisedDevice &dev)
 {
-	string ManufactureData = dev.getManufacturerData();;
-	if (isBeacon(ManufactureData)) {
+	string ManufacturerData = dev.getManufacturerData();;
+	if (isBeacon(ManufacturerData)) {
 		Serial.println("Beacon found.");
 		sOut.morseOut('b');
 	}
@@ -58,12 +58,14 @@ int findBeacon::DetectNewDevices(BLEScanResults &newDevices, BLEScanResults &old
 		// Checking oldDevices
 		int j;
 		for (j=0; j < oldDevices.getCount(); j++) {
-			if (dev.getAddress().equals(oldDevices.getDevice(j).getAddress())) {
+			string newDev = dev.getManufacturerData();
+			string oldDev = oldDevices.getDevice(j).getManufacturerData();
+		if (newDev == oldDev) {
 				break;
 			}
 		}
 		if (j >= oldDevices.getCount()) {
-				// New device found
+			// New device found
 			Announcenewdevice(dev);
 			found++;
 		}
@@ -76,10 +78,9 @@ void findBeacon::findDeviceTask(void *pvParameters) {
 	BLEScanResults foundDevices;
 	for (;;) {
 		foundDevices = pBLEScan->start(scanTime);
-		//Serial.print("Devices found: ");
-		//Serial.println(foundDevices.getCount());
+		Serial.print("Devices found: ");
+		Serial.println(foundDevices.getCount());
 		DetectNewDevices(foundDevices, existDevices);
 		existDevices = std::move(foundDevices);
 	}
 }
-
