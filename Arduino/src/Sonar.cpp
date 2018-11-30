@@ -5,8 +5,8 @@
 #include "Sonar.hpp"
 #include "soundOut.hpp"
 
-#define PW 12
-#define BW 14
+#define PW 5
+#define BW 8
 
 volatile unsigned int Sonar::curRange;
 
